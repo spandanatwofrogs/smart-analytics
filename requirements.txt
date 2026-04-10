@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+streamlit
+plotly
+transformers
+torch
+fuzzywuzzy
+python-Levenshtein
