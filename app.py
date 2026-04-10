@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sys
+<<<<<<< HEAD
 import os
 sys.path.append('.')
 
@@ -21,6 +22,12 @@ from modules.prediction import (
     train_and_save,
     predict_single_customer
 )
+=======
+sys.path.append('.')
+from modules.chatbot import chatbot_response
+from modules.sentiment import get_sentiment_summary, load_sentiment_model, analyze_single
+from modules.prediction import get_predictions, train_and_save
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
 
 st.set_page_config(
     page_title="Smart Customer Analytics",
@@ -30,6 +37,7 @@ st.set_page_config(
 
 st.sidebar.title("Smart Analytics")
 st.sidebar.markdown("---")
+<<<<<<< HEAD
 page = st.sidebar.radio(
     "Go to",
     ["Chatbot",
@@ -49,20 +57,39 @@ if page == "Chatbot":
         "Answers product queries and "
         "store policies instantly"
     )
+=======
+page = st.sidebar.radio("Go to", 
+    ["Chatbot", "Sentiment Analysis", "Sales Prediction"])
+st.sidebar.markdown("---")
+st.sidebar.caption("Built with BERT + Random Forest")
+
+# ─────────────────────────────
+# PAGE 1: CHATBOT
+# ─────────────────────────────
+if page == "Chatbot":
+    st.title("Customer Assistant Chatbot")
+    st.caption(
+        "Ask about products, prices, policies or recommendations")
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
 
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "bot",
+<<<<<<< HEAD
              "text": (
                  "Hello! Welcome to Smart Analytics Store.\n\n"
                  "I can help you with products, "
                  "prices, deals and policies.\n\n"
                  "What are you looking for?"
              )}
+=======
+             "text": "Hi! Ask me about products or policies."}
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
         ]
 
     for msg in st.session_state.messages:
         if msg["role"] == "bot":
+<<<<<<< HEAD
             st.chat_message("assistant").write(
                 msg["text"])
         else:
@@ -70,6 +97,13 @@ if page == "Chatbot":
 
     user_input = st.chat_input(
         "Type your question here...")
+=======
+            st.chat_message("assistant").write(msg["text"])
+        else:
+            st.chat_message("user").write(msg["text"])
+
+    user_input = st.chat_input("Type your question here...")
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
     if user_input:
         st.session_state.messages.append(
             {"role": "user", "text": user_input})
@@ -78,6 +112,7 @@ if page == "Chatbot":
             {"role": "bot", "text": response})
         st.rerun()
 
+<<<<<<< HEAD
 # ─────────────────────────────────────────────
 # PAGE 2 — SENTIMENT ANALYSIS
 # ─────────────────────────────────────────────
@@ -87,10 +122,21 @@ elif page == "Sentiment Analysis":
         "BERT model — DistilBERT fine-tuned "
         "on customer reviews"
     )
+=======
+# ─────────────────────────────
+# PAGE 2: SENTIMENT ANALYSIS
+# ─────────────────────────────
+elif page == "Sentiment Analysis":
+    st.title("Customer Sentiment Dashboard")
+    st.caption("Powered by BERT — DistilBERT model")
+
+    col1, col2, col3 = st.columns(3)
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
 
     with st.spinner("Loading sentiment data..."):
         counts = get_sentiment_summary()
 
+<<<<<<< HEAD
     pos   = counts.get('POSITIVE', 0)
     neg   = counts.get('NEGATIVE', 0)
     total = pos + neg
@@ -106,6 +152,16 @@ elif page == "Sentiment Analysis":
         f"{round(neg/total*100)}%" if total else "0%",
         f"{neg} reviews"
     )
+=======
+    pos = counts.get('POSITIVE', 0)
+    neg = counts.get('NEGATIVE', 0)
+    total = pos + neg
+
+    col1.metric("Positive Reviews",
+                f"{round(pos/total*100)}%" if total else "0%")
+    col2.metric("Negative Reviews",
+                f"{round(neg/total*100)}%" if total else "0%")
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
     col3.metric("Total Analyzed", f"{total}")
 
     st.markdown("---")
@@ -139,6 +195,7 @@ elif page == "Sentiment Analysis":
     st.markdown("---")
     st.subheader("Test live sentiment")
     test_text = st.text_input(
+<<<<<<< HEAD
         "Type any review text:")
     if test_text:
         with st.spinner("Analyzing..."):
@@ -379,3 +436,55 @@ elif page == "Customer Prediction":
             st.warning(f"Prediction: {result}")
         else:
             st.info(f"Prediction: {result}")
+=======
+        "Type any review text and see the result:")
+    if test_text:
+        with st.spinner("Analyzing..."):
+            model = load_sentiment_model()
+            label, score = analyze_single(test_text, model)
+        if label == "POSITIVE":
+            st.success(f"POSITIVE — {score}% confidence")
+        else:
+            st.error(f"NEGATIVE — {score}% confidence")
+
+# ─────────────────────────────
+# PAGE 3: SALES PREDICTION
+# ─────────────────────────────
+elif page == "Sales Prediction":
+    st.title("Sales Prediction Dashboard")
+    st.caption(
+        "Random Forest model trained on historical sales data")
+
+    if st.button("Train / Retrain Model"):
+        with st.spinner("Training model..."):
+            acc = train_and_save()
+        st.success(f"Model trained! Accuracy: {acc}%")
+
+    with st.spinner("Loading predictions..."):
+        df_pred = get_predictions()
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Categories Analyzed", len(df_pred))
+    col2.metric("High Demand Categories",
+                len(df_pred[df_pred['Demand Score'] >= 50]))
+    col3.metric("Model", "Random Forest")
+
+    st.markdown("---")
+    fig = px.bar(
+        df_pred,
+        x='Category',
+        y='Demand Score',
+        title='Predicted Demand Score by Category (%)',
+        color='Demand Score',
+        color_continuous_scale='Teal'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("Top predicted high-demand categories")
+    st.dataframe(
+        df_pred.sort_values(
+            'Demand Score', ascending=False),
+        use_container_width=True
+    )
+>>>>>>> 0f9b7448ba6f27c159251f119ab909abd5b29458
